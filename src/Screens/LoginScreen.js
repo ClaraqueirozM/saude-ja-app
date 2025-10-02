@@ -1,29 +1,64 @@
 
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+
+
+const USER_STORAGE_KEY = '@app_users'; 
 
 export default function LoginScreen({ onLogin, navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    if (email === 'teste@teste.com' && password === 'senha123') {
-      try {
-        await AsyncStorage.setItem('isLoggedIn', 'true');
-        onLogin();
-      } catch (error) {
-        Alert.alert('Erro', 'Não foi possível salvar o login.');
+    if (!email || !password) {
+      Alert.alert('Aviso', 'Por favor, preencha o email e a senha.');
+      return;
+    }
+
+    try {
+      
+      const existingUsersJson = await AsyncStorage.getItem(USER_STORAGE_KEY);
+      const existingUsers = existingUsersJson ? JSON.parse(existingUsersJson) : [];
+
+     
+      const foundUser = existingUsers.find(
+        user => user.email === email && user.password === password
+      );
+
+      if (foundUser) {
+      
+        await AsyncStorage.setItem('@current_user', JSON.stringify(foundUser));
+
+        Alert.alert('Sucesso!', `Login bem-sucedido. Bem-vindo(a), ${foundUser.name}.`);
+        
+        
+        onLogin(); 
+      } else {
+        
+        Alert.alert('Erro no Login', 'Email ou senha incorretos. Verifique e tente novamente.');
       }
-    } else {
-      Alert.alert('Erro', 'Email ou senha incorretos.');
+
+    } catch (error) {
+      
+      Alert.alert('Erro Interno', `Falha ao tentar logar: ${error.message}`);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Faça Login</Text>
+      
+      <Image 
+        source={require('../assets/logo.jpg')} 
+        style={styles.logo} 
+        resizeMode="contain" 
+        /> 
+      
+      <Text style={styles.appName}>Saúde Já</Text>
+      <Text style={styles.subtitle}>(Login )</Text>
+      
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -31,17 +66,22 @@ export default function LoginScreen({ onLogin, navigation }) {
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
+        placeholderTextColor="#666"
       />
+      
       <TextInput
         style={styles.input}
         placeholder="Senha"
         secureTextEntry={true}
         value={password}
         onChangeText={setPassword}
+        placeholderTextColor="#666"
       />
+      
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+        <Text style={styles.buttonText}>ENTRAR</Text>
       </TouchableOpacity>
+      
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={styles.registerText}>Não tem conta? Cadastre-se</Text>
       </TouchableOpacity>
@@ -54,12 +94,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#E5F1FB', 
     padding: 20,
   },
-  title: {
+  logo: {
+    width: 250,
+    height: 80,
+    marginBottom: 20,
+  },
+  appName: {
     fontSize: 32,
     fontWeight: 'bold',
+    color: '#005CA9', 
+    marginBottom: 10,
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
     marginBottom: 40,
   },
   input: {
@@ -70,11 +123,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
+    backgroundColor: '#fff',
   },
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: '#007bff',
+    backgroundColor: '#005CA9', 
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
@@ -84,10 +138,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    letterSpacing: 1,
   },
   registerText: {
-    color: '#007bff',
+    color: '#005CA9',
     marginTop: 20,
     fontSize: 16,
+    fontWeight: '500',
   },
 });

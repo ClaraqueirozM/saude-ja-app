@@ -4,26 +4,29 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-
-import LoginScreen from './src/Screens/LoginScreen';
-import TriageScreen from './src/Screens/TriageScreen';
-import RegisterScreen from './src/Screens/RegisterScreen';
-import RecommendationScreen from './src/Screens/RecommendationScreen';
+import LoginScreen from './src/Screens/LoginScreen.js'; 
+import TriageScreen from './src/Screens/TriageScreen.js';
+import RegisterScreen from './src/Screens/RegisterScreen.js'; 
+import RecommendationScreen from './src/Screens/RecommendationScreen.js';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
   
+  
+  const CURRENT_USER_KEY = '@current_user'; 
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const value = await AsyncStorage.getItem('isLoggedIn');
-        if (value === 'true') {
+        
+        const userJson = await AsyncStorage.getItem(CURRENT_USER_KEY); 
+        
+        if (userJson) {
           setIsLoggedIn(true);
         }
       } catch (error) {
@@ -36,29 +39,32 @@ export default function App() {
   }, []);
 
   const handleLogin = () => {
+    
     setIsLoggedIn(true);
   };
-  
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem('isLoggedIn');
-      setIsLoggedIn(false);
-    } catch (error) {
-      console.error('Falha ao fazer logout', error);
-    }
+
+  const handleLogout = () => {
+   
+    setIsLoggedIn(false);
   };
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Carregando...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#005CA9" />
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: '#005CA9' }, 
+          headerTintColor: '#fff', 
+          headerTitleStyle: { fontWeight: 'bold' }, 
+        }}
+      >
         {isLoggedIn ? (
           <>
             <Stack.Screen
@@ -79,6 +85,7 @@ export default function App() {
               name="Login"
               options={{ headerShown: false }}
             >
+              
               {props => <LoginScreen {...props} onLogin={handleLogin} />}
             </Stack.Screen>
             <Stack.Screen
@@ -92,3 +99,12 @@ export default function App() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E5F1FB', 
+  },
+});

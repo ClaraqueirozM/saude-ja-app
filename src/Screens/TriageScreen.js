@@ -3,12 +3,25 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+
 const sintomas = ['Febre', 'Tosse', 'Dor de garganta', 'Falta de ar', 'Cólica/Dor'];
 const gravidades = ['Leve', 'Moderado', 'Grave'];
 
 export default function TriageScreen({ navigation, onLogout }) {
   const [sintomaSelecionado, setSintomaSelecionado] = useState(null);
   const [gravidadeSelecionada, setGravidadeSelecionada] = useState(null);
+
+  const getRecommendation = () => {
+    if (gravidadeSelecionada === 'Grave' && sintomaSelecionado === 'Falta de ar') {
+        return 'Emergência! Procure atendimento médico imediato (Ligar 192 ou ir ao PA).';
+    }
+    if (gravidadeSelecionada === 'Moderado' && sintomaSelecionado === 'Febre') {
+        return 'Recomendamos monitoramento e procurar uma UBS ou UPA se persistir.';
+    }
+    
+    return `Para o sintoma "${sintomaSelecionado}" com gravidade "${gravidadeSelecionada}", o protocolo é avaliar se há necessidade de atendimento em 24h.`;
+  };
 
   const handleSymptomPress = (symptom) => {
     setSintomaSelecionado(symptom);
@@ -28,55 +41,58 @@ export default function TriageScreen({ navigation, onLogout }) {
       Alert.alert('Atenção', 'Por favor, selecione um sintoma e uma gravidade.');
     }
   };
+  
+  const handleLogout = async () => {
+    try {
+        
+        await AsyncStorage.removeItem('@current_user');
+        
+        onLogout();
+    } catch (error) {
+        Alert.alert('Erro', 'Não foi possível desconectar.');
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Seção de Sintomas */}
-      <Text style={styles.sectionTitle}>Triagem Rápida</Text>
-      <View style={styles.buttonGrid}>
-        {sintomas.map((symptom) => (
-          <TouchableOpacity
-            key={symptom}
-            style={[
-              styles.symptomButton,
-              sintomaSelecionado === symptom && styles.symptomButtonSelected,
-            ]}
-            onPress={() => handleSymptomPress(symptom)}
-          >
-            <Text style={styles.buttonText}>{symptom}</Text>
+     <ScrollView style={styles.container}>
+       <Text style={styles.sectionTitle}>Triagem Rápida</Text>
+       <View style={styles.buttonGrid}>
+         {sintomas.map((symptom) => (
+           <TouchableOpacity
+             key={symptom}
+             style={[
+               styles.symptomButton,
+               sintomaSelecionado === symptom && styles.symptomButtonSelected,
+             ]}
+             onPress={() => handleSymptomPress(symptom)}
+           >
+             <Text style={styles.buttonText}>{symptom}</Text>
+           </TouchableOpacity>
+         ))}
+       </View>
+        <Text style={styles.sectionTitle}>Como está a gravidade?</Text>
+       <View style={styles.gravityButtons}>
+         {gravidades.map((severity) => (
+           <TouchableOpacity
+             key={severity}
+             style={[
+               styles.gravityButton,
+               gravidadeSelecionada === severity && styles.gravityButtonSelected,
+             ]}
+             onPress={() => handleSeverityPress(severity)}
+           >
+             <Text style={styles.gravityButtonText}>{severity}</Text>
+           </TouchableOpacity>
+         ))}
+       </View>
+         {sintomaSelecionado && gravidadeSelecionada && (
+          <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
+            <Text style={styles.nextButtonText}>Ver Recomendação</Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Seção de Gravidade */}
-      <Text style={styles.sectionTitle}>Como está a gravidade?</Text>
-      <View style={styles.gravityButtons}>
-        {gravidades.map((severity) => (
-          <TouchableOpacity
-            key={severity}
-            style={[
-              styles.gravityButton,
-              gravidadeSelecionada === severity && styles.gravityButtonSelected,
-            ]}
-            onPress={() => handleSeverityPress(severity)}
-          >
-            <Text style={styles.gravityButtonText}>{severity}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Botão de "Ver Recomendação" */}
-      {sintomaSelecionado && gravidadeSelecionada && (
-        <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
-          <Text style={styles.nextButtonText}>Ver Recomendação</Text>
+         )}
+       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+         <Text style={styles.logoutButtonText}>Sair</Text>
         </TouchableOpacity>
-      )}
-
-      {/* Botão de "Sair" */}
-      <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-        <Text style={styles.logoutButtonText}>Sair</Text>
-      </TouchableOpacity>
-
     </ScrollView>
   );
 }
@@ -84,7 +100,7 @@ export default function TriageScreen({ navigation, onLogout }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#E5F1FB',
     padding: 15,
   },
   sectionTitle: {
@@ -92,6 +108,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
+    color: '#005CA9',
   },
   buttonGrid: {
     flexDirection: 'row',
@@ -99,16 +116,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   symptomButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 15,
     marginVertical: 5,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#005CA9',
   },
   symptomButtonSelected: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#005CA9',
+    borderColor: '#fff',
   },
   buttonText: {
     color: '#000',
@@ -119,22 +137,25 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   gravityButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#fff',
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     flex: 1,
     marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: '#005CA9',
   },
   gravityButtonSelected: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#005CA9',
+    borderColor: '#fff',
   },
   gravityButtonText: {
     color: '#000',
   },
   nextButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#005CA9',
     padding: 15,
     borderRadius: 8,
     marginTop: 20,

@@ -1,35 +1,27 @@
 
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 
 export default function RecommendationScreen({ route }) {
   const { sintoma, gravidade } = route.params;
 
   const getRecommendation = () => {
-    if (gravidade === 'Grave' || sintoma === 'Falta de ar' || sintoma === 'Dor no peito') {
-      return 'Procure um hospital ou UPA imediatamente!';
-    }
-    if (gravidade === 'Moderado') {
-      return 'Procure uma unidade de saúde de pronto atendimento.';
-    }
-    return 'Repouso e medicação. Se os sintomas piorarem, procure uma unidade de saúde.';
+    // ...
   };
 
   return (
     <View style={styles.container}>
+      <Image source={require('../assets/logo.jpg')} style={styles.logo} />
       <Text style={styles.title}>Recomendação</Text>
-      <Text style={styles.summaryText}>
-        Você selecionou:
-      </Text>
-      <Text style={styles.detailText}>Sintoma: {sintoma}</Text>
-      <Text style={styles.detailText}>Gravidade: {gravidade}</Text>
-      
+      <View style={styles.summaryBox}>
+        <Text style={styles.summaryText}>Você selecionou:</Text>
+        <Text style={styles.detailText}>Sintoma: {sintoma}</Text>
+        <Text style={styles.detailText}>Gravidade: {gravidade}</Text>
+      </View>
       <View style={styles.recommendationBox}>
         <Text style={styles.recommendationTitle}>Nosso Guia Sugere:</Text>
-        <Text style={styles.recommendationText}>
-          {getRecommendation()}
-        </Text>
+        <Text style={styles.recommendationText}>{getRecommendation()}</Text>
       </View>
     </View>
   );
@@ -38,13 +30,26 @@ export default function RecommendationScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#E5F1FB',
     padding: 20,
     alignItems: 'center',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#005CA9',
+  },
+  summaryBox: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '100%',
     marginBottom: 20,
   },
   summaryText: {
@@ -56,10 +61,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
   },
-  recommendationBox: {
-    marginTop: 30,
-    padding: 20,
+   recommendationBox: {
     backgroundColor: '#f0f8ff',
+    padding: 20,
     borderRadius: 10,
     width: '100%',
     alignItems: 'center',
