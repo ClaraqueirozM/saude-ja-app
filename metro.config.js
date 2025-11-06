@@ -1,5 +1,18 @@
-const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
-const config = {};
+const { getDefaultConfig } = require('expo/metro-config');
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+
+const config = getDefaultConfig(__dirname);
+
+config.resolver.sourceExts.push('js', 'jsx', 'json', 'ts', 'tsx', 'cjs');
+
+
+
+
+config.resolver.extraNodeModules = {
+ 
+  'expo-sqlite': `${__dirname}/node_modules/expo-sqlite`,
+};
+
+
+module.exports = config;
