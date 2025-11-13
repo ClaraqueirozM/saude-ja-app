@@ -94,6 +94,10 @@ export default function LoginScreen({ onLogin, navigation }) {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>ENTRAR</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Recovery')}>
+                <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
+            </TouchableOpacity>
             
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerText}>Não tem conta? Cadastre-se</Text>
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         letterSpacing: 1,
     },
-     input: {
+    input: {
         width: '100%',
         height: 50,
         borderColor: '#ccc',
@@ -180,6 +184,12 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         letterSpacing: 1,
+    },
+    forgotPasswordText: {
+        color: '#005CA9',
+        marginTop: 10,
+        fontSize: 14,
+        textDecorationLine: 'underline',
     },
     registerText: {
         color: '#005CA9',

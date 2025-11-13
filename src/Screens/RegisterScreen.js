@@ -28,16 +28,13 @@ export default function RegisterScreen({ navigation }) {
         
         const senhaHash = CryptoJS.SHA256(password).toString();
 
-        try {
-            await cadastrarUsuario(email, senhaHash, name);
-            
+        const result = await cadastrarUsuario(email, senhaHash, name);
+        
+        if (result.success) {
             Alert.alert('Sucesso!', 'Cadastro realizado com sucesso! Agora faça o login.');
-            
             navigation.navigate('Login');
-
-        } catch (error) {
-            console.error('Erro ao registrar:', error);
-            Alert.alert('Erro no Cadastro', error.message);
+        } else {
+            Alert.alert('Erro no Cadastro', result.message);
         }
     };
 
@@ -136,7 +133,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         color: '#333', 
     },
-     passwordContainer: {
+    passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
@@ -168,7 +165,7 @@ const styles = StyleSheet.create({
     toggleText: {
         fontSize: 20,
     },
-     button: {
+    button: {
         width: '100%',
         height: 50,
         backgroundColor: '#005CA9',
