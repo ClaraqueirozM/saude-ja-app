@@ -1,4 +1,4 @@
- import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import CryptoJS from 'crypto-js'; 
 import { cadastrarUsuario } from '../services/dataservice'; 
@@ -8,6 +8,7 @@ export default function RegisterScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleRegister = async () => {
         if (!name || !email || !password || !confirmPassword) {
@@ -60,22 +61,44 @@ export default function RegisterScreen({ navigation }) {
                 value={email}
                 onChangeText={setEmail}
             />
-            <TextInput
-                style={styles.input}
-                placeholder="Senha (mín. 6 caracteres)"
-                placeholderTextColor="#888" 
-                secureTextEntry={true}
-                value={password}
-                onChangeText={setPassword}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Confirmar Senha"
-                placeholderTextColor="#888" 
-                secureTextEntry={true}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-            />
+            
+            <View style={styles.passwordContainer}> 
+                <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Senha (mín. 6 caracteres)"
+                    placeholderTextColor="#888" 
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <TouchableOpacity 
+                    style={styles.toggleButton} 
+                    onPress={() => setShowPassword(!showPassword)}
+                >
+                    <Text style={styles.toggleText}>
+                        {showPassword ? '👁️' : '🔒'} 
+                    </Text>
+                </TouchableOpacity>
+            </View>
+            
+            <View style={styles.passwordContainer}> 
+                <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Confirmar Senha"
+                    placeholderTextColor="#888" 
+                    secureTextEntry={!showPassword}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                />
+                <TouchableOpacity 
+                    style={styles.toggleButton} 
+                    onPress={() => setShowPassword(!showPassword)}
+                >
+                    <Text style={styles.toggleText}>
+                        {showPassword ? '👁️' : '🔒'} 
+                    </Text>
+                </TouchableOpacity>
+            </View>
             
             <TouchableOpacity style={styles.button} onPress={handleRegister}>
                 <Text style={styles.buttonText}>Cadastrar</Text> 
@@ -110,10 +133,43 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingHorizontal: 15,
         marginBottom: 15,
-        backgroundColor: '#fff',
-       
+         backgroundColor: '#fff',
         color: '#333', 
     },
+    
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 15,
+    },
+    passwordInput: {
+        flex: 1,
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderTopLeftRadius: 8,
+        borderBottomLeftRadius: 8,
+        paddingHorizontal: 15,
+        backgroundColor: '#fff',
+        color: '#333',
+    },
+    toggleButton: {
+        height: 50,
+        width: 50,
+        backgroundColor: '#fff',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderLeftWidth: 0, 
+        borderTopRightRadius: 8,
+        borderBottomRightRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    toggleText: {
+        fontSize: 20,
+    },
+    
     button: {
         width: '100%',
         height: 50,

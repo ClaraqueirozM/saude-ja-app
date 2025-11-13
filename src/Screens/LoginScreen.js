@@ -7,6 +7,7 @@ import { buscarUsuarioPorEmail, initializeDatabase } from '../services/dataservi
 export default function LoginScreen({ onLogin, navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const initDB = async () => {
@@ -33,16 +34,16 @@ export default function LoginScreen({ onLogin, navigation }) {
                 return;
             }
 
-             const passwordHashDigitada = CryptoJS.SHA256(password).toString();
+            const passwordHashDigitada = CryptoJS.SHA256(password).toString();
 
             if (passwordHashDigitada === foundUser.senha_hash) {
-                 await AsyncStorage.setItem('@current_user_id', foundUser.id.toString());
-                 await AsyncStorage.setItem('@current_user_name', foundUser.nome); 
+                await AsyncStorage.setItem('@current_user_id', foundUser.id.toString());
+                await AsyncStorage.setItem('@current_user_name', foundUser.nome); 
 
-                 Alert.alert('Sucesso!', `Login bem-sucedido. Bem-vindo(a), ${foundUser.nome}.`);
+                Alert.alert('Sucesso!', `Login bem-sucedido. Bem-vindo(a), ${foundUser.nome}.`);
                 
-                 onLogin(); 
-              } else {
+                onLogin(); 
+            } else {
                 Alert.alert('Erro no Login', 'Email ou senha incorretos. Verifique e tente novamente.');
             }
         } catch (error) {
@@ -51,15 +52,15 @@ export default function LoginScreen({ onLogin, navigation }) {
         }
     };
 
-     return (
-         <View style={styles.container}>
+    return (
+        <View style={styles.container}>
             <Image 
                 source={require('../assets/logo.jpg')} 
-                 style={styles.logo} 
+                style={styles.logo} 
                 resizeMode="contain" 
             />
             
-             <Text style={styles.appName}>Saúde Já</Text>
+            <Text style={styles.appName}>Saúde Já</Text>
             
             <TextInput
                 style={styles.input}
@@ -71,14 +72,24 @@ export default function LoginScreen({ onLogin, navigation }) {
                 placeholderTextColor="#666"
             />
             
-            <TextInput
-                style={styles.input}
-                placeholder="Senha"
-                secureTextEntry={true}
-                value={password}
-                onChangeText={setPassword}
-                placeholderTextColor="#666"
-            />
+            <View style={styles.passwordContainer}>
+                <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Senha"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholderTextColor="#666"
+                />
+                <TouchableOpacity 
+                    style={styles.toggleButton} 
+                    onPress={() => setShowPassword(!showPassword)}
+                >
+                    <Text style={styles.toggleText}>
+                        {showPassword ? '👁️' : '🔒'} 
+                    </Text>
+                </TouchableOpacity>
+            </View>
             
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>ENTRAR</Text>
@@ -112,12 +123,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         letterSpacing: 1,
     },
-    subtitle: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 40,
-    },
-    input: {
+     input: {
         width: '100%',
         height: 50,
         borderColor: '#ccc',
@@ -127,6 +133,39 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         backgroundColor: '#fff',
     },
+    
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 15,
+    },
+    passwordInput: {
+        flex: 1,
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderTopLeftRadius: 8,
+        borderBottomLeftRadius: 8,
+        paddingHorizontal: 15,
+        backgroundColor: '#fff',
+    },
+    toggleButton: {
+        height: 50,
+        width: 50,
+        backgroundColor: '#fff',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderLeftWidth: 0, 
+        borderTopRightRadius: 8,
+        borderBottomRightRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    toggleText: {
+        fontSize: 20,
+    },
+    
     button: {
         width: '100%',
         height: 50,
