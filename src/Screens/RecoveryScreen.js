@@ -19,7 +19,7 @@ export default function RecoveryScreen({ navigation }) {
 
         const foundUser = await buscarUsuarioPorEmail(email);
 
-        if (foundUser && foundUser.nome.toLowerCase() === name.toLowerCase()) {
+        if (foundUser && foundUser.nome.toLowerCase().trim() === name.toLowerCase().trim()) {
             Alert.alert('Sucesso', 'Usuário verificado. Agora defina sua nova senha.');
             setStep(2);
         } else {

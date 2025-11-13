@@ -1,21 +1,19 @@
- import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-
-
+ 
 import LoginScreen from './src/Screens/LoginScreen';
 import RegisterScreen from './src/Screens/RegisterScreen';
+import RecoveryScreen from './src/Screens/RecoveryScreen'; 
 import TriageScreen from './src/Screens/TriageScreen';
 import RecommendationScreen from './src/Screens/RecommendationScreen';
-
-
+ 
 import { initializeDatabase } from './src/services/dataservice';
 
 const Stack = createNativeStackNavigator();
-
-
+ 
 function AppStack({ onLogout }) {
     return (
         <Stack.Navigator screenOptions={{ headerShown: true, headerStyle: { backgroundColor: '#005CA9' }, headerTintColor: '#fff' }}>
@@ -32,9 +30,8 @@ function AppStack({ onLogout }) {
             />
         </Stack.Navigator>
     );
-}
-
-
+ }
+ 
 function AuthStack({ onLogin }) {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -48,20 +45,22 @@ function AuthStack({ onLogin }) {
                 name="Register" 
                 component={RegisterScreen} 
             />
+            <Stack.Screen 
+                name="Recovery" 
+                component={RecoveryScreen} 
+            />
         </Stack.Navigator>
     );
-}
-
+ }
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const setupApp = async () => {
+         const setupApp = async () => {
             try {
-                
-                await initializeDatabase();
+                 await initializeDatabase();
                 
                 const userId = await AsyncStorage.getItem('@current_user_id');
                 
@@ -83,12 +82,13 @@ export default function App() {
         setIsLoggedIn(true);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem('@current_user_id');
+        await AsyncStorage.removeItem('@current_user_name');
         setIsLoggedIn(false);
-    };
+     };
 
-
-    if (isLoading) {
+     if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#005CA9" />
@@ -115,4 +115,4 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#E5F1FB'
     }
- });
+});
