@@ -5,11 +5,9 @@ let db;
 
 
 export const initializeDatabase = async () => {
-    try {
-        
+     try {
         db = await SQLite.openDatabaseAsync('dadoSaude.db');
-        
-        
+         
         await db.execAsync(`
             CREATE TABLE IF NOT EXISTS Usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,11 +17,11 @@ export const initializeDatabase = async () => {
             );
         `);
         
-        console.log("Banco de dados inicializado com sucesso (Nova API).");
+        console.log("Banco de dados inicializado com sucesso.");
         return true;
         
     } catch (e) {
-        console.error("Erro CRÍTICO ao inicializar DB (Nova API):", e);
+        console.error("Erro CRÍTICO ao inicializar DB:", e);
         
         throw new Error(`Falha ao inicializar o banco: ${e.message}`);
     }
@@ -42,12 +40,13 @@ export const cadastrarUsuario = async (email, senhaHash, nome) => {
             'INSERT INTO Usuarios (email, senha_hash, nome) VALUES (?, ?, ?);',
             [email, senhaHash, nome]
         );
+        
         return result.lastInsertRowId; 
         
     } catch (error) {
-        console.error("Erro ao cadastrar usuário (Nova API): ", error);
+        console.error("Erro ao cadastrar usuário: ", error);
         
-       
+        
         if (error.message && error.message.includes('UNIQUE constraint failed')) { 
             throw new Error("Este e-mail já está cadastrado.");
         } else {
@@ -63,7 +62,7 @@ export const buscarUsuarioPorEmail = async (email) => {
     }
 
     try {
-       
+        
         const usuario = await db.getFirstAsync(
             'SELECT * FROM Usuarios WHERE email = ?;',
             [email]
@@ -72,7 +71,7 @@ export const buscarUsuarioPorEmail = async (email) => {
         return usuario || null; 
         
     } catch (error) {
-        console.error("Erro ao buscar usuário (Nova API): ", error);
+        console.error("Erro ao buscar usuário: ", error);
         throw new Error("Erro ao buscar usuário no banco de dados.");
     }
 };

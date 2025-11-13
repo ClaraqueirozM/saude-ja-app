@@ -1,51 +1,74 @@
- import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Linking, TouchableOpacity } from 'react-native';
-
+import React from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, Linking, TouchableOpacity, Alert, Platform } from 'react-native'; 
 
 const UPAS_RECIFE = [
-    { nome: "UPA Caxangá", bairro: "Caxangá", telefone: "(81) 3355-6080" },
-    { nome: "UPA Imbiribeira", bairro: "Imbiribeira", telefone: "(81) 3355-1681" },
-    { nome: "UPA Nova Descoberta", bairro: "Nova Descoberta", telefone: "(81) 3355-4607" },
-    { nome: "UPA Torrões", bairro: "Torrões", telefone: "(81) 3355-6184" },
-    { nome: "UPA Ibura", bairro: "Ibura", telefone: "(81) 3355-2578" },
-    { nome: "UPA Jardim Paulista", bairro: "Jardim Paulista", telefone: "(81) 3378-0000" }, 
+    { nome: "UPA Caxangá", bairro: "Iputinga", telefone: "(81) 3184-4355", 
+      latitude: -8.02978, longitude: -34.95762 }, 
+    { nome: "UPA Imbiribeira", bairro: "Imbiribeira", telefone: "(81) 3184-4328", 
+      latitude: -8.12069, longitude: -34.91388 },
+    { nome: "UPA Nova Descoberta", bairro: "Nova Descoberta", telefone: "(81)3184-4581", 
+      latitude: -8.00215, longitude: -34.91993 }, 
+    { nome: "UPA Torrões", bairro: "Torrões", telefone: "(81) 3184-4444", 
+      latitude: -8.06332, longitude: -34.93419 },
+    { nome: "UPA Ibura", bairro: "Cohab/Ibura", telefone: "(81) 3184-4616", 
+      latitude: -8.12891, longitude: -34.94965 }, 
 ];
 
-export default function RecommendationScreen({ route, navigation }) {
-    const { sintoma, gravidade } = route.params;
+const CLINICAS_ESPECIALIZADAS = [
+    { nome: "Hospital da Restauração (HR)", especialidade: "Trauma / Queimados", telefone: "(81) 3181-5400", 
+      latitude: -8.05366, longitude: -34.89752 },
+    { nome: "PROCAPE (Cardiologia)", especialidade: "Cardiologia", telefone: "(81) 3181-7100", 
+      latitude: -8.04922, longitude: -34.88766 }, 
+    { nome: "Hospital Barão de Lucena", especialidade: "Clínica Geral / Pediatria", telefone: "(81) 3184-6400", 
+      latitude: -8.039987, longitude: -34.93943},
+    { nome: "UPAE Arruda", especialidade: "Múltiplas Especialidades Clínicas", telefone: "(81) 2011-0200", 
+      latitude: -8.02798, longitude: -34.89161 }, 
+];
 
-    
+
+export default function RecommendationScreen({ route, navigation }) {
+    const { sintoma = 'Nenhum', gravidade = 'Nenhuma' } = route.params || {};
+
     const getRecommendationData = () => {
-        if (gravidade === 'Grave' && sintoma === 'Falta de ar') {
+        
+        const alertaVermelho = ['Falta de ar', 'Dor no Peito', 'Trauma', 'Alteração de Consciência', 'Sangramento Incontrolável'];
+
+        if (gravidade === 'Grave' && alertaVermelho.some(keyword => sintoma.includes(keyword))) {
             return {
-                text: 'Emergência! Falta de ar grave é um ALERTA VERMELHO. Ligue imediatamente para o SAMU ou dirija-se ao PA mais próximo.',
+                text: 'Emergência! Este é um ALERTA VERMELHO. Ligue imediatamente para o SAMU (192) ou dirija-se ao PA/Hospital mais próximo.',
                 color: '#dc3545', 
                 showUpas: true,
+                samu: true,
+                showClinicas: true,
             };
         }
+        
         if (gravidade === 'Grave') {
             return {
                 text: `Risco Alto! Para o sintoma de ${sintoma}, procure urgentemente uma UPA ou UPAE.`,
                 color: '#FFC107', 
                 samu: false,
                 showUpas: true,
+                showClinicas: true, 
             };
         }
-        if (gravidade === 'Moderado' && (sintoma === 'Febre' || sintoma === 'Tosse')) {
+        
+        if (gravidade === 'Moderado' && (sintoma.includes('Febre') || sintoma.includes('Tosse'))) {
             return {
-                text: 'Recomendamos monitoramento contínuo. Procure uma UBS ou UPA se a condição piorar ou persistir.',
+                text: 'Recomendamos monitoramento contínuo. Procure uma UPA se a condição piorar ou persistir (tempo ideal: 24h).',
                 color: '#007bff', 
                 samu: false,
-                showUpas: true,
+                showUpas: true, 
+                showClinicas: false,
             };
-        }
+         }
         
-        
-        return {
+         return {
             text: `Para o sintoma "${sintoma}" com gravidade "${gravidade}", o protocolo é repouso, hidratação e avaliar se há necessidade de atendimento em 24h.`,
             color: '#35C77F',
             samu: false,
             showUpas: false, 
+            showClinicas: false,
         };
     };
 
@@ -57,9 +80,42 @@ export default function RecommendationScreen({ route, navigation }) {
         Linking.openURL(`tel:${phoneNumber}`);
     };
 
+    const openMap = (latitude, longitude, name) => {
+        const label = encodeURIComponent(name);
+        
+        const geoUrl = Platform.select({
+            ios: `maps:0,0?q=${label}@${latitude},${longitude}`,
+            android: `geo:${latitude},${longitude}?q=${label}`
+        });
+
+        Linking.openURL(geoUrl).catch(() => {
+            Alert.alert("Erro", "Não foi possível abrir o aplicativo de mapas.");
+        });
+    };
+
+    const renderUnitItem = (unit, isUpa = true) => (
+        <View key={unit.nome} style={styles.upaItem}>
+            <View style={{ flex: 1 }}>
+                <Text style={styles.upaName}>
+                    {unit.nome} ({isUpa ? unit.bairro : unit.especialidade})
+                </Text>
+            </View>
+            
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <TouchableOpacity onPress={() => openMap(unit.latitude, unit.longitude, unit.nome)}>
+                    <Text style={[styles.upaPhone, {marginRight: 15, fontSize: 18}]}>📍</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => callNumber(unit.telefone)}>
+                    <Text style={styles.upaPhone}>📞</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
+
     return (
         <ScrollView style={styles.container}>
-            <Image source={require('../assets/logo.jpg')} style={styles.logo} />
+            <Image source={require('../assets/logo.jpg')} style={styles.logo} /> 
             <Text style={styles.title}>Recomendação</Text>
             
             <View style={styles.summaryBox}>
@@ -89,19 +145,30 @@ export default function RecommendationScreen({ route, navigation }) {
             {recommendation.showUpas && (
                 <View style={styles.upasSection}>
                     <Text style={styles.upasTitle}>UPAs de Referência em Recife:</Text>
-                    {UPAS_RECIFE.map((upa, index) => (
-                        <View key={index} style={styles.upaItem}>
-                            <Text style={styles.upaName}>{upa.nome} ({upa.bairro})</Text>
-                            <TouchableOpacity onPress={() => callNumber(upa.telefone)}>
-                                <Text style={styles.upaPhone}>📞 {upa.telefone}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    ))}
-                    <Text style={styles.infoText}>*Telefones para contato com a unidade.</Text>
+                    {UPAS_RECIFE.map(upa => renderUnitItem(upa, true))}
+                    <Text style={styles.infoText}>*Toque no 📞 para ligar ou no 📍 para abrir o mapa.</Text>
+                </View>
+            )}
+
+            
+            {recommendation.showClinicas && CLINICAS_ESPECIALIZADAS.length > 0 && (
+                <View style={styles.upasSection}> 
+                    <Text style={styles.upasTitle}>Hospitais de Referência (UPAEs/Hospitais):</Text>
+                    {CLINICAS_ESPECIALIZADAS.map(clinica => renderUnitItem(clinica, false))}
+                    <Text style={styles.infoText}>*Hospitais de referência para casos graves específicos.</Text>
                 </View>
             )}
             
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <TouchableOpacity 
+                style={styles.backButton} 
+                onPress={() => {
+                    if (navigation.canGoBack()) {
+                        navigation.goBack();
+                    } else {
+                        navigation.navigate('Triage'); 
+                    }
+                }}
+            >
                 <Text style={styles.backButtonText}>Voltar para Triagem</Text>
             </TouchableOpacity>
 
@@ -206,7 +273,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee'
+        borderBottomColor: '#eee',
+        alignItems: 'center', 
     },
     upaName: {
         fontSize: 15,

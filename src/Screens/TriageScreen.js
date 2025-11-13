@@ -6,12 +6,11 @@ const sintomas = ['Febre', 'Tosse', 'Dor de garganta', 'Falta de ar', 'Cólica/D
 const gravidades = ['Leve', 'Moderado', 'Grave'];
 
 export default function TriageScreen({ navigation, onLogout }) {
-    const [sintomaSelecionado, setSintomaSelecionado] = useState(null);
+    const [sintomaSelecionado, setSintomaSelecionado] = useState([]); 
     const [gravidadeSelecionada, setGravidadeSelecionada] = useState(null);
-    const [userName, setUserName] = useState('Usuário'); // Novo estado para o nome
+    const [userName, setUserName] = useState('Usuário'); 
 
-    // Carrega o nome do usuário salvo no login
-    useEffect(() => {
+     useEffect(() => {
         const fetchUserName = async () => {
             const name = await AsyncStorage.getItem('@current_user_name');
             if (name) {
@@ -19,21 +18,16 @@ export default function TriageScreen({ navigation, onLogout }) {
             }
         };
         fetchUserName();
-    }, []);
+      }, []);
 
-    const getRecommendation = () => {
-        if (gravidadeSelecionada === 'Grave' && sintomaSelecionado === 'Falta de ar') {
-            return 'Emergência! Procure atendimento médico imediato (Ligar 192 ou ir ao PA).';
-        }
-        if (gravidadeSelecionada === 'Moderado' && sintomaSelecionado === 'Febre') {
-            return 'Recomendamos monitoramento e procurar uma UBS ou UPA se persistir.';
-        }
-        
-        return `Para o sintoma "${sintomaSelecionado}" com gravidade "${gravidadeSelecionada}", o protocolo é avaliar se há necessidade de atendimento em 24h.`;
-    };
-
-    const handleSymptomPress = (symptom) => {
-        setSintomaSelecionado(symptom);
+      const handleSymptomPress = (symptom) => {
+        setSintomaSelecionado((prevSintomas) => {
+            if (prevSintomas.includes(symptom)) {
+                return prevSintomas.filter(s => s !== symptom);
+            } else {
+                return [...prevSintomas, symptom];
+            }
+        });
     };
 
     const handleSeverityPress = (severity) => {
@@ -41,41 +35,39 @@ export default function TriageScreen({ navigation, onLogout }) {
     };
 
     const handleNextPress = () => {
-        if (sintomaSelecionado && gravidadeSelecionada) {
+        if (sintomaSelecionado.length > 0 && gravidadeSelecionada) {
+            const sintomaString = sintomaSelecionado.join(', ');
+
             navigation.navigate('Recommendation', {
-                sintoma: sintomaSelecionado,
+                sintoma: sintomaString,
                 gravidade: gravidadeSelecionada,
             });
         } else {
-            Alert.alert('Atenção', 'Por favor, selecione um sintoma e uma gravidade.');
+            Alert.alert('Atenção', 'Por favor, selecione pelo menos um sintoma e uma gravidade.');
         }
     };
     
-    const handleLogout = async () => {
-        try {
-            // Remove as chaves de sessão corretas
+     const handleLogout = async () => {
+         try {
             await AsyncStorage.removeItem('@current_user_id');
             await AsyncStorage.removeItem('@current_user_name');
-            
-            onLogout();
-        } catch (error) {
+             onLogout();
+         } catch (error) {
             Alert.alert('Erro', 'Não foi possível desconectar.');
         }
     };
 
     return (
-        <ScrollView style={styles.container}>
-            {/* Adiciona uma saudação personalizada */}
+         <ScrollView style={styles.container}>
             <Text style={styles.welcomeText}>Olá, {userName}!</Text> 
-            <Text style={styles.sectionTitle}>Triagem Rápida</Text>
-            {/* Restante do front-end original */}
+             <Text style={styles.sectionTitle}>Triagem Rápida</Text>
             <View style={styles.buttonGrid}>
                 {sintomas.map((symptom) => (
                     <TouchableOpacity
                         key={symptom}
                         style={[
                             styles.symptomButton,
-                            sintomaSelecionado === symptom && styles.symptomButtonSelected,
+                            sintomaSelecionado.includes(symptom) && styles.symptomButtonSelected,
                         ]}
                         onPress={() => handleSymptomPress(symptom)}
                     >
@@ -98,7 +90,7 @@ export default function TriageScreen({ navigation, onLogout }) {
                     </TouchableOpacity>
                 ))}
             </View>
-            {sintomaSelecionado && gravidadeSelecionada && (
+            {sintomaSelecionado.length > 0 && gravidadeSelecionada && (
                 <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
                     <Text style={styles.nextButtonText}>Ver Recomendação</Text>
                 </TouchableOpacity>
@@ -115,8 +107,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E5F1FB',
         padding: 15,
-    },
-    // NOVO: Estilo para a saudação
+     },
     welcomeText: { 
         fontSize: 20, 
         fontWeight: 'bold', 
@@ -143,7 +134,7 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         borderWidth: 1,
         borderColor: '#005CA9',
-        width: '48%', // Ajuste para layout
+        width: '48%', 
     },
     symptomButtonSelected: {
         backgroundColor: '#005CA9',

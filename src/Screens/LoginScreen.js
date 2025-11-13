@@ -1,12 +1,23 @@
- import React, { useState } from 'react';
- import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import CryptoJS from 'crypto-js'; 
-import { buscarUsuarioPorEmail } from '../services/dataservice'; 
+import { buscarUsuarioPorEmail, initializeDatabase } from '../services/dataservice'; 
 
 export default function LoginScreen({ onLogin, navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    useEffect(() => {
+        const initDB = async () => {
+            try {
+                await initializeDatabase();
+            } catch (error) {
+                console.error("Erro na inicialização do DB:", error);
+            }
+        };
+        initDB();
+    }, []);
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -22,22 +33,16 @@ export default function LoginScreen({ onLogin, navigation }) {
                 return;
             }
 
-         
-            const passwordHashDigitada = CryptoJS.SHA256(password).toString();
+             const passwordHashDigitada = CryptoJS.SHA256(password).toString();
 
-            
             if (passwordHashDigitada === foundUser.senha_hash) {
-                
-                
-                await AsyncStorage.setItem('@current_user_id', foundUser.id.toString());
-                await AsyncStorage.setItem('@current_user_name', foundUser.nome); 
+                 await AsyncStorage.setItem('@current_user_id', foundUser.id.toString());
+                 await AsyncStorage.setItem('@current_user_name', foundUser.nome); 
 
-                Alert.alert('Sucesso!', `Login bem-sucedido. Bem-vindo(a), ${foundUser.nome}.`);
+                 Alert.alert('Sucesso!', `Login bem-sucedido. Bem-vindo(a), ${foundUser.nome}.`);
                 
-                
-                onLogin(); 
-            } else {
-                
+                 onLogin(); 
+              } else {
                 Alert.alert('Erro no Login', 'Email ou senha incorretos. Verifique e tente novamente.');
             }
         } catch (error) {
@@ -46,18 +51,15 @@ export default function LoginScreen({ onLogin, navigation }) {
         }
     };
 
-    return (
-        <View style={styles.container}>
-            
-            
+     return (
+         <View style={styles.container}>
             <Image 
                 source={require('../assets/logo.jpg')} 
-                style={styles.logo} 
+                 style={styles.logo} 
                 resizeMode="contain" 
             />
             
-            <Text style={styles.appName}>Saúde Já</Text>
-            <Text style={styles.subtitle}>(Login )</Text>
+             <Text style={styles.appName}>Saúde Já</Text>
             
             <TextInput
                 style={styles.input}
@@ -106,7 +108,7 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: 'bold',
         color: '#005CA9', 
-        marginBottom: 10,
+        marginBottom: 40, 
         textAlign: 'center',
         letterSpacing: 1,
     },
