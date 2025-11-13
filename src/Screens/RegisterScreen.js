@@ -133,11 +133,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingHorizontal: 15,
         marginBottom: 15,
-         backgroundColor: '#fff',
+        backgroundColor: '#fff',
         color: '#333', 
     },
-    
-    passwordContainer: {
+     passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
@@ -169,8 +168,7 @@ const styles = StyleSheet.create({
     toggleText: {
         fontSize: 20,
     },
-    
-    button: {
+     button: {
         width: '100%',
         height: 50,
         backgroundColor: '#005CA9',

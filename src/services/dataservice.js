@@ -1,77 +1,63 @@
 import * as SQLite from 'expo-sqlite';
+import CryptoJS from 'crypto-js';
 
-
-let db;
-
+const db = SQLite.openDatabase('dadoSaude.db');
 
 export const initializeDatabase = async () => {
-     try {
-        db = await SQLite.openDatabaseAsync('dadoSaude.db');
-         
-        await db.execAsync(`
-            CREATE TABLE IF NOT EXISTS Usuarios (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL UNIQUE,
-                senha_hash TEXT NOT NULL,
-                nome TEXT NOT NULL
-            );
-        `);
-        
-        console.log("Banco de dados inicializado com sucesso.");
-        return true;
-        
-    } catch (e) {
-        console.error("Erro CRÍTICO ao inicializar DB:", e);
-        
-        throw new Error(`Falha ao inicializar o banco: ${e.message}`);
-    }
-};
-
-
-export const cadastrarUsuario = async (email, senhaHash, nome) => {
-    
-    if (!db) {
-        await initializeDatabase();
-    }
-
-    try {
-        
-        const result = await db.runAsync(
-            'INSERT INTO Usuarios (email, senha_hash, nome) VALUES (?, ?, ?);',
-            [email, senhaHash, nome]
+    await db.execAsync(`
+        PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS Usuarios (
+            id INTEGER PRIMARY KEY NOT NULL,
+            nome TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            senha_hash TEXT NOT NULL
         );
-        
-        return result.lastInsertRowId; 
-        
-    } catch (error) {
-        console.error("Erro ao cadastrar usuário: ", error);
-        
-        
-        if (error.message && error.message.includes('UNIQUE constraint failed')) { 
-            throw new Error("Este e-mail já está cadastrado.");
-        } else {
-            throw new Error("Erro ao salvar usuário no banco de dados.");
-        }
-    }
+    `);
 };
-
 
 export const buscarUsuarioPorEmail = async (email) => {
     if (!db) {
         await initializeDatabase();
     }
+    const result = await db.getFirstAsync('SELECT id, nome, senha_hash FROM Usuarios WHERE email = ?;', [email]);
+    return result;
+};
 
+ export const cadastrarUsuario = async (email, senhaHash, nome) => {
+    if (!db) {
+        await initializeDatabase();
+    }
+    
+    const existingUser = await buscarUsuarioPorEmail(email); 
+    
+    if (existingUser) {
+        throw new Error('Este e-mail já está cadastrado.');
+    }
+    
     try {
-        
-        const usuario = await db.getFirstAsync(
-            'SELECT * FROM Usuarios WHERE email = ?;',
-            [email]
-        );
-        
-        return usuario || null; 
-        
+        await db.runAsync(
+            'INSERT INTO Usuarios (nome, email, senha_hash) VALUES (?, ?, ?);',
+            [nome, email, senhaHash]
+         );
     } catch (error) {
-        console.error("Erro ao buscar usuário: ", error);
-        throw new Error("Erro ao buscar usuário no banco de dados.");
+        throw new Error('Falha ao cadastrar usuário. Tente novamente.');
+    }
+};
+ 
+export const logAllUsers = async () => {
+    if (!db) {
+        await initializeDatabase();
+     }
+    try {
+        const results = await db.getAllAsync('SELECT id, nome, email, senha_hash FROM Usuarios;');
+        
+        console.log("--- DADOS DOS USUÁRIOS SALVOS ---");
+        console.table(results);
+        console.log("---------------------------------");
+        
+        return results;
+    } catch (error) {
+        console.error("Erro ao tentar visualizar usuários: ", error.message);
+        return [];
     }
 };
