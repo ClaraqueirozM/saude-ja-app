@@ -10,7 +10,7 @@ Tecnologias utilizadas
 - Expo
 - React Hooks (useState, useEffect)
 - Assets internos para interface (imagens e ícones)
-
+- Geolocation
  Estrutura do projeto
 
 O app está organizado da seguinte forma:
